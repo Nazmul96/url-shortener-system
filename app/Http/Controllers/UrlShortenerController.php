@@ -34,5 +34,17 @@ class UrlShortenerController extends Controller
         return redirect()->back()->with('success', 'Url successfully deleted');
     }
 
+    public function redirectOriginalUrl($shortUrl): RedirectResponse
+    {
+        try {
+            $url = UrlShortener::where('short_url', $shortUrl)->firstOrFail();
 
+            $url->increment('click_count');
+
+            return redirect($url->original_url);
+        } catch (\Exception $exception) {
+            return redirect()->back()->with('error', 'Failed redirect to the original URL.');
+        }
+    }
+    
 }
