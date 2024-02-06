@@ -3,29 +3,33 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\UrlShortenerRequest;
+use App\Http\Requests\StoreUrlShortenerRequest;
 use App\Models\UrlShortener;
 use App\Services\ShortUrlService;
+
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class UrlShortenerController extends Controller
 {
-    private $shortUrlService;
-
-    public function __construct(ShortUrlService $shortUrlService)
+   
+    public function shortenUrl(Request $request,ShortUrlService $shortUrlService): JsonResponse
     {
-        $this->shortUrlService = $shortUrlService;
-    }
+        $validator = Validator::make($request->all(), [
+            'original_url' => 'required|url',
+        ]);
 
-    public function shortenUrl(UrlShortenerRequest $request): JsonResponse
-    {
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
         $url = UrlShortener::create([
             'original_url' => $request->input('original_url'),
-            'short_url' => $this->shortUrlService->generateUniqueShortUrl(),
+            'short_url' => $shortUrlService->getUniqueShortUrl(),
         ]);
 
         if (! $url) {
-            return response()->json(['error' => 'Short failed to create!'], 402);
+            return response()->json(['error' => 'Short url failed to create!'], 402);
         }
 
         return response()->json(['short_url' => config('app.url').'/url/'.$url->short_url], 201);

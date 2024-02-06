@@ -30,7 +30,7 @@ class UrlShortenerController extends Controller
 
     public function delete(UrlShortener $url): RedirectResponse
     {
-
+        $url->delete();
         return redirect()->back()->with('success', 'Url successfully deleted');
     }
 
